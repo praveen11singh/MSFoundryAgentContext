@@ -1,0 +1,30 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+.env
+.pkvenv/
+
+# Local configuration
+*.env
+.env.*
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Local data stores
+user_memory_store.json
+user_chats_index.json
