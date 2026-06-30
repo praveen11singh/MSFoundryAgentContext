@@ -1,17 +1,19 @@
 # Python bytecode
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *$py.class
 
 # Virtual environments
 .venv/
 venv/
-.env
 .pkvenv/
 
-# Local configuration
-*.env
+# Environment files
+.env
 .env.*
+*.env
 
 # IDE/editor settings
 .vscode/
@@ -25,6 +27,7 @@ htmlcov/
 # Logs
 *.log
 
-# Local data stores
+# Local runtime and sample data
 user_memory_store.json
 user_chats_index.json
+*.local.json
