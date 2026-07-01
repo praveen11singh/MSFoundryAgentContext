@@ -1,38 +1,3 @@
-"""
-context_manager_v2.py
-----------------------
-Implements four layers of "context" on top of Microsoft Foundry's Agent Service,
-written against the CURRENT (v2.x) azure-ai-projects SDK.
-
-IMPORTANT: Microsoft changed the agent API surface between SDK major versions.
-  - OLD (azure-ai-projects 1.x): project_client.agents.create_agent(), .threads, .runs
-  - NEW (azure-ai-projects 2.x): project_client.agents.create_version(), and an
-    OpenAI-Responses-style client (openai_client.conversations / .responses.create)
-If you installed azure-ai-projects >= 2.0, you MUST use the pattern below.
-Run `pip show azure-ai-projects` to check which one you have.
-
-Concept mapping (old -> new):
-    thread        -> conversation
-    create_agent  -> agents.create_version(...) with a PromptAgentDefinition
-    runs.create_and_process + messages.list -> openai_client.responses.create(...)
-
-1. CONVERSATIONAL CONTEXT  -> handled natively by a Foundry "conversation"
-2. FOLLOW-UP CONTEXT       -> handled natively by the same conversation
-3. LONG-TERM CONTEXT       -> a persisted user-memory store you inject into new conversations
-4. MULTI-CHAT CONTEXT      -> multiple named conversations per user, tracked in a local index
-
-Requires:
-    pip install azure-ai-projects azure-identity
-
-Auth:
-    az login   (uses DefaultAzureCredential)
-
-Env vars:
-    FOUNDRY_PROJECT_ENDPOINT     e.g. https://<resource>.services.ai.azure.com/api/projects/<project>
-    FOUNDRY_MODEL_DEPLOYMENT     deployment name shown in your Foundry project's "Models" tab, e.g. gpt-4o-mini
-    FOUNDRY_AGENT_NAME           optional, defaults to "context-demo-agent"
-"""
-
 import os
 from typing import Optional
 
@@ -87,12 +52,6 @@ def create_agent_if_missing(name: str = FOUNDRY_AGENT_NAME,
 # ---------------------------------------------------------------------------
 # 1 & 2. CONVERSATIONAL CONTEXT + FOLLOW-UP CONTEXT  (native: Foundry conversations)
 # ---------------------------------------------------------------------------
-#
-# A "conversation" in the v2 SDK is what a "thread" was in v1: it IS your
-# conversation history. Every item you add stays in scope for every future
-# response on that conversation_id, so the model resolves follow-ups
-# ("what about that?") without you resending history yourself.
-
 
 def create_conversation() -> str:
     """Starts a new, empty conversation and returns its id."""
@@ -121,15 +80,6 @@ def send_message(conversation_id: str, agent_name: str, user_text: str) -> str:
 # ---------------------------------------------------------------------------
 # 3. LONG-TERM CONTEXT  (persisted user memory injected into conversations)
 # ---------------------------------------------------------------------------
-#
-# Conversations don't persist meaning across DIFFERENT sessions on their own --
-# each is a scoped container. For "remember this user across days/weeks", keep
-# a small durable memory record per user and feed it back in whenever a new
-# conversation starts, or periodically summarize an old conversation into it.
-#
-# Backed by Cosmos DB now -- see cosmos_store.py for the implementation.
-# (LongTermMemoryStore here is the Cosmos-backed version, partitioned by userId.)
-
 long_term_store = LongTermMemoryStore()
 
 
@@ -180,12 +130,6 @@ def summarize_conversation_into_long_term_memory(conversation_id: str, user_id: 
 # ---------------------------------------------------------------------------
 # 4. MULTI-CHAT CONTEXT  (many conversations per user, like a sidebar)
 # ---------------------------------------------------------------------------
-#
-# Each "chat" the user sees in a sidebar maps 1:1 to a Foundry conversation_id.
-# Backed by Cosmos DB now -- see cosmos_store.py for the implementation.
-# (MultiChatIndex here is the Cosmos-backed version: one item per chat,
-# partitioned by userId, queried by userId.)
-
 multi_chat_index = MultiChatIndex()
 
 
